@@ -10,7 +10,7 @@ Week 1 is done when this works on real data:
 2. Split the data into train and test sets with a fixed seed.
 3. Score two baselines on the test set: classic Riegel, and a calibrated version.
 
-Week 2 adds the machine learning model, which has to beat both baselines.
+Week 2 adds machine learning models (ridge regression and gradient boosted trees) that have to beat both baselines on the same test rows.
 
 ## Setup
 
@@ -47,6 +47,14 @@ python scripts/run_week1.py synthetic
 
 That uses fake data and stamps the chart "SYNTHETIC DATA, NOT REAL RESULTS". Never show those numbers.
 
+## Week 2: train the models
+
+```
+python scripts/run_week2.py data/raw/YOUR_FILE.csv
+```
+
+This picks model settings with cross validation on the train rows only, then scores everything once on the test rows. It prints the comparison table, how much the best model gains over the calibrated baseline (with a 95 percent range from resampling), how often an 80 percent prediction range holds the real finish, and saves a chart and metrics file in `outputs/`. Run `python scripts/run_week2.py synthetic` to check the code without data.
+
 ## Run the tests
 
 ```
@@ -60,7 +68,9 @@ pytest
 | `marathon/data.py` | Loads and cleans results, reports every dropped row, makes the train and test split |
 | `marathon/baseline.py` | Riegel baseline, calibrated baseline, and error metrics in minutes |
 | `marathon/synthetic.py` | Fake data for testing the code only |
+| `marathon/model.py` | Features, ridge and boosted tree models, prediction ranges, bootstrap comparison |
 | `scripts/run_week1.py` | Runs the whole Week 1 pipeline and saves the chart |
+| `scripts/run_week2.py` | Trains the models and scores them against the baselines |
 | `tests/` | Tests for the cleaning, the split, and the baseline math |
 | `NOTES.md` | Decision log, written in your own words |
 
