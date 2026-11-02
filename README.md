@@ -65,7 +65,7 @@ python scripts/run_week3.py data/raw/Athletes.csv --strava data/strava/activitie
 
 Add `--missed 3:20,4:25` to log weeks as week:km pairs and watch the plan rebuild. Add `--check-race 2026-06-07 3:58:00` to test the bridge on one past marathon. This also revisits the 50 runners the Week 1 cleaner dropped.
 
-To open the app:
+To open the app (Mile20, live at mile20.streamlit.app):
 
 ```
 streamlit run app.py
@@ -94,7 +94,7 @@ pytest
 | `marathon/planner.py` | Builds the weekly plan and rebuilds it when weeks are missed |
 | `marathon/outliers.py` | Looks closely at the runners the cleaner dropped |
 | `scripts/run_week3.py` | Runs the Week 3 checks, estimate, and plan from the terminal |
-| `app.py` | The rough Streamlit app |
+| `app.py` | The Mile20 Streamlit app (Estimate, Plan, How it works tabs) |
 | `tests/` | Tests for the cleaning, the split, and the baseline math |
 | `NOTES.md` | Decision log, written in your own words |
 
