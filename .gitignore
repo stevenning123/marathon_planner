@@ -7,4 +7,5 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 outputs/
-data/strava/
+data/strava/*
+!data/strava/.gitkeep
