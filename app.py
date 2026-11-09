@@ -26,7 +26,9 @@ from marathon.planner import (
     MAX_WEEKLY_INCREASE, READY_LONG_KM, TAPER_FACTORS, TARGET_PEAK_KM, PlanSettings, build_plan,
     default_start_date, missed_weeks, readiness, replan,
 )
-from marathon.strava import days_since_last_run, load_activities, recent_stats, weekly_summary
+from marathon.strava import (
+    MAX_PACE_S_PER_KM, MIN_PACE_S_PER_KM, days_since_last_run, load_activities, recent_stats, weekly_summary,
+)
 
 APP_NAME = "Mile20"
 TAGLINE = "Predict your marathon finish, then train so mile 20 feels like mile 10."
@@ -197,6 +199,8 @@ def parse_clock(text: str):
         return None
     if not 1 <= len(parts) <= 3:
         return None
+    if len(parts) == 1:  # a lone number means minutes, so "25" is 25 minutes
+        return parts[0] * 60
     while len(parts) < 3:
         parts.insert(0, 0.0)
     return parts[0] * 3600 + parts[1] * 60 + parts[2]
@@ -379,10 +383,13 @@ with tab_est:
                     dist = c1.number_input("Distance (km)", 5.0, 42.2, 21.1, step=0.1)
                     clock = c2.text_input("Time (H:MM:SS)", "1:55:00")
                     secs = parse_clock(clock)
-                    if secs:
-                        estimate = estimate_from_effort(dist, secs, rel_half_width=rel_half)
+                    if not secs:
+                        st.error("Time should look like 1:55:00, or just minutes like 25")
+                    elif not MIN_PACE_S_PER_KM <= secs / dist <= MAX_PACE_S_PER_KM:
+                        st.error("That pace is not realistic. It should be between 2:30 and 12:00 per km, "
+                                 "so check the distance and the time.")
                     else:
-                        st.error("Time should look like 1:55:00")
+                        estimate = estimate_from_effort(dist, secs, rel_half_width=rel_half)
                     weekly_in = st.number_input("Current kilometers per week", 10.0, 160.0, 40.0, step=1.0)
                     long_in = st.number_input("Longest run in the last 8 weeks (km)", 3.0, 60.0, 16.0, step=0.5)
                     stats = {"avg_weekly_km": weekly_in, "longest_run_km": long_in}
