@@ -31,6 +31,11 @@ from marathon.strava import days_since_last_run, load_activities, recent_stats, 
 APP_NAME = "Mile20"
 TAGLINE = "Predict your marathon finish, then train so mile 20 feels like mile 10."
 BOSTON_FILE = Path(__file__).parent / "data" / "raw" / "Athletes.csv"
+ICON_FILE = Path(__file__).parent / "assets" / "mile20_icon.png"
+REPO_URL = "https://github.com/stevenning123/marathon_planner"
+SUBLINE = "A personal project for Alpha Kappa Psi. Estimates are best case and plans follow rules of thumb."
+FONT = "Inter"
+CARD_RADIUS, INNER_RADIUS = "14px", "10px"
 
 # Palette. Navy for text, one blue for data, one orange accent, light blue grey for cards.
 NAVY, BLUE, ORANGE, CARD = "#1B2A41", "#2F5DA8", "#E4572E", "#F2F5FA"
@@ -39,7 +44,7 @@ PHASES = ["Build", "Cutback", "Taper", "Race week"]
 ORDINAL = {2: "second", 3: "third", 4: "fourth", 5: "fifth"}
 PHASE_COLORS = {"Build": BLUE, "Cutback": "#9DB4DD", "Taper": "#7C8AA0", "Race week": NAVY}
 
-st.set_page_config(page_title=f"{APP_NAME} | Marathon finish predictor", page_icon="🏃", layout="wide")
+st.set_page_config(page_title=f"{APP_NAME} | Marathon finish predictor", page_icon=str(ICON_FILE) if ICON_FILE.exists() else "🏃", layout="wide")
 
 CSS = f"""
 <style>
@@ -49,26 +54,37 @@ CSS = f"""
 header[data-testid="stHeader"] {{ background: transparent; height: 0; }}
 .block-container {{ max-width: 1080px; padding-top: 2.2rem; padding-bottom: 4rem; }}
 html, body, [class*="css"] {{ color: {NAVY}; }}
+/* Tabular numbers everywhere so times and distances line up */
+body, .stApp, .stApp * {{ font-variant-numeric: tabular-nums; }}
 
 /* Header */
-.m20-header {{ margin: 0 0 1.4rem 0; }}
-.m20-logo {{ font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: {NAVY}; }}
+.m20-header {{ margin: 0 0 1.4rem 0; padding: 1.7rem 1.9rem 1.5rem 1.9rem; border-radius: {CARD_RADIUS};
+  background: linear-gradient(120deg, #DCE6F6 0%, #EAF0FA 45%, #F7F9FD 100%); border: 1px solid #E1E7F0; }}
+.m20-sub {{ font-size: 0.82rem; color: {NAVY}; opacity: 0.6; margin-top: 0.7rem; padding-top: 0.6rem;
+  border-top: 1px solid rgba(27, 42, 65, 0.1); }}
+.m20-logo {{ font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: {NAVY}; }}
 .m20-logo span {{ color: {ORANGE}; }}
 .m20-tagline {{ font-size: 1.05rem; color: {NAVY}; opacity: 0.72; margin-top: 0.45rem; }}
 
 /* Tabs */
-.stTabs [data-baseweb="tab-list"] {{ gap: 1.6rem; border-bottom: 1px solid #DDE3EE; }}
-.stTabs [data-baseweb="tab"] {{ padding: 0.6rem 0.1rem; }}
-.stTabs [data-baseweb="tab"] p {{ font-size: 1rem; font-weight: 600; }}
-.stTabs [data-baseweb="tab-panel"] {{ padding-top: 1.4rem; }}
+.stTabs [role="tablist"] {{ gap: 1.6rem; border-bottom: 1px solid #DDE3EE; }}
+.stTabs [role="tab"] {{ padding: 0.6rem 0.1rem; transition: color 0.15s ease; }}
+.stTabs [role="tab"]:hover, .stTabs [role="tab"]:hover p {{ color: {BLUE} !important; }}
+.stTabs [role="tab"][aria-selected="true"]:hover,
+.stTabs [role="tab"][aria-selected="true"]:hover p {{ color: {ORANGE} !important; }}
+.stTabs [role="tab"] p {{ font-size: 1rem; font-weight: 600; }}
+.stTabs [role="tabpanel"] {{ padding-top: 1.4rem; }}
 
 /* Cards: bordered containers get the light card color */
 [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]),
 div[class*="st-key-card"] {{
   background: {CARD};
   border-color: #E1E7F0 !important;
-  border-radius: 14px;
+  border-radius: {CARD_RADIUS} !important;
 }}
+[data-testid="stExpander"] details {{ border-radius: {CARD_RADIUS} !important; border-color: #E1E7F0 !important; }}
+/* Consistent space between stacked cards */
+[data-testid="stVerticalBlock"] {{ row-gap: 1rem; }}
 div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important; }}
 
 /* Type scale */
@@ -79,8 +95,8 @@ div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important;
 .m20-muted {{ font-size: 0.9rem; line-height: 1.5; color: {NAVY}; opacity: 0.68; }}
 
 /* Big estimate */
-.m20-big {{ font-size: clamp(3.4rem, 11vw, 5.6rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1;
-  color: {NAVY}; font-variant-numeric: tabular-nums; margin: 0.2rem 0 0.35rem 0; }}
+.m20-big {{ font-size: clamp(3.6rem, 16vw, 7.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.95;
+  color: {NAVY}; font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0.3rem 0 0.6rem 0; }}
 .m20-pill {{ display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px;
   background: #FFFFFF; border: 1px solid #D5DDEA; color: {NAVY}; vertical-align: middle; }}
 .m20-pill.accent {{ background: {ORANGE}; border-color: {ORANGE}; color: #FFFFFF; }}
@@ -99,15 +115,15 @@ div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important;
 
 /* Calm notes */
 .m20-note {{ display: flex; gap: 0.7rem; background: #FFFFFF; border: 1px solid #E1E7F0; border-left: 3px solid #9DB4DD;
-  border-radius: 10px; padding: 0.75rem 0.95rem; margin: 0.6rem 0; font-size: 0.92rem; line-height: 1.5; color: {NAVY}; }}
+  border-radius: {INNER_RADIUS}; padding: 0.75rem 0.95rem; margin: 0.6rem 0; font-size: 0.92rem; line-height: 1.5; color: {NAVY}; }}
 .m20-note .i {{ flex: 0 0 auto; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: {CARD};
   border: 1px solid #C9D4E5; font-size: 0.75rem; font-weight: 700; text-align: center; line-height: 1.15rem; }}
 
 /* Stat row */
 .m20-stats {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1rem; }}
-.m20-stat {{ background: #FFFFFF; border: 1px solid #E1E7F0; border-radius: 10px; padding: 0.7rem 0.85rem; }}
-.m20-stat .v {{ font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; color: {NAVY}; }}
-.m20-stat .l {{ font-size: 0.78rem; color: {NAVY}; opacity: 0.62; }}
+.m20-stat {{ background: #FFFFFF; border: 1px solid #E1E7F0; border-radius: {INNER_RADIUS}; padding: 0.7rem 0.85rem; }}
+.m20-stat .v {{ font-size: 1.3rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; color: {NAVY}; }}
+.m20-stat .l {{ font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {NAVY}; opacity: 0.62; }}
 
 /* Readiness meter */
 .m20-status {{ font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; color: {NAVY}; margin: 0.1rem 0 0.2rem 0; }}
@@ -130,14 +146,23 @@ div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important;
   font-weight: 700; text-align: center; line-height: 2rem; }}
 .m20-rule b {{ display: block; font-size: 1rem; color: {NAVY}; }}
 
+/* Footer */
+.m20-footer {{ margin-top: 2.5rem; padding-top: 1.1rem; border-top: 1px solid #E1E7F0; display: flex;
+  flex-wrap: wrap; justify-content: space-between; gap: 0.4rem 1rem; font-size: 0.85rem; color: {NAVY}; opacity: 0.75; }}
+.m20-footer a {{ color: {BLUE}; text-decoration: none; font-weight: 600; }}
+.m20-footer a:hover {{ color: {ORANGE}; }}
+
 @media (max-width: 640px) {{
   .block-container {{ padding-left: 1rem; padding-right: 1rem; padding-top: 1.4rem; }}
-  .m20-logo {{ font-size: 2rem; }}
+  .m20-logo {{ font-size: 2.1rem; }}
+  .m20-header {{ padding: 1.2rem 1.1rem 1.1rem 1.1rem; }}
+  .stTabs [role="tab"] p {{ font-size: 0.95rem; }}
   .m20-tagline {{ font-size: 0.95rem; }}
-  .stTabs [data-baseweb="tab-list"] {{ gap: 1rem; }}
+  .stTabs [role="tablist"] {{ gap: 1rem; }}
   .m20-stats {{ gap: 0.5rem; }}
   .m20-stat {{ padding: 0.55rem 0.6rem; }}
   .m20-stat .v {{ font-size: 1.1rem; }}
+  .st-key-card_ready .m20-stats {{ margin-bottom: 1.2rem; }}
   div[class*="st-key-card"] {{ padding: 1rem 1rem 1.4rem 1rem !important; }}
   /* Show the estimate above the inputs, and keep stacked columns close together */
   .st-key-est_row > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] {{ flex-direction: column-reverse; }}
@@ -244,12 +269,18 @@ def legend(with_actual: bool, with_original: bool) -> str:
 def plan_chart(adjusted: pd.DataFrame, original: pd.DataFrame, show_original: bool) -> alt.LayerChart:
     data = adjusted.copy()
     data["Week of"] = data["week_start"].map(short_date)
-    axis_x = alt.X("week:O", title="Week", axis=alt.Axis(labelAngle=0, labelColor=NAVY, titleColor=NAVY,
-                                                         domainColor="#C9D4E5", tickColor="#C9D4E5", labelFontSize=11))
+    race = data.loc[data["phase"] == "Race week", "week"]
+    race_week = int(race.iloc[0]) if len(race) else -1
+    is_race = f"datum.value == {race_week}"
+    axis_x = alt.X("week:O", title="Week", axis=alt.Axis(
+        labelAngle=0, labelColor=NAVY, titleColor=NAVY, domainColor="#C9D4E5", tickColor="#C9D4E5", labelFontSize=11,
+        labelExpr=f"{is_race} ? 'Race' : datum.label",
+        labelFontWeight=alt.ExprRef(f"{is_race} ? 'bold' : 'normal'")))
     bars = alt.Chart(data).mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
         x=axis_x,
         y=alt.Y("planned_km:Q", title="Kilometers",
-                axis=alt.Axis(labelColor=NAVY, titleColor=NAVY, gridColor="#E6EBF3", domain=False, tickCount=5)),
+                axis=alt.Axis(labelColor=NAVY, titleColor=NAVY, gridColor="#D9E1EC", gridDash=[3, 3],
+                              gridOpacity=0.9, domain=False, ticks=False, tickCount=5)),
         color=alt.Color("phase:N", scale=alt.Scale(domain=PHASES, range=[PHASE_COLORS[p] for p in PHASES]), legend=None),
         tooltip=[alt.Tooltip("week:O", title="Week"), alt.Tooltip("Week of:N"), alt.Tooltip("phase:N", title="Phase"),
                  alt.Tooltip("planned_km:Q", title="Planned km", format=".1f"),
@@ -269,7 +300,7 @@ def plan_chart(adjusted: pd.DataFrame, original: pd.DataFrame, show_original: bo
         layers += [actual.mark_line(color=ORANGE, strokeWidth=2.5),
                    actual.mark_point(color=ORANGE, filled=True, size=70, opacity=1)]
     return (alt.layer(*layers).properties(height=300)
-            .configure_view(strokeWidth=0).configure(background="transparent", font="sans-serif"))
+            .configure_view(strokeWidth=0).configure(background="transparent", font=FONT))
 
 
 def readiness_copy(ready: dict, weeks: int, missed: list[int]) -> tuple[str, str]:
@@ -296,7 +327,8 @@ def readiness_copy(ready: dict, weeks: int, missed: list[int]) -> tuple[str, str
 
 html(CSS)
 html(f'<div class="m20-header"><div class="m20-logo">Mile<span>20</span></div>'
-     f'<div class="m20-tagline">{escape(TAGLINE)}</div></div>')
+     f'<div class="m20-tagline">{escape(TAGLINE)}</div>'
+     f'<div class="m20-sub">{escape(SUBLINE)}</div></div>')
 
 rel_half, measured = boston_half_width()
 TODAY = pd.Timestamp.today().normalize()
@@ -417,7 +449,7 @@ with tab_est:
                 y=alt.Y("km:Q", title="Kilometers", axis=alt.Axis(labelColor=NAVY, titleColor=NAVY,
                                                                    gridColor="#E6EBF3", domain=False, tickCount=5)),
                 tooltip=["Week of", alt.Tooltip("km:Q", format=".1f")],
-            ).properties(height=220).configure_view(strokeWidth=0).configure(background="transparent")
+            ).properties(height=220).configure_view(strokeWidth=0).configure(background="transparent", font=FONT)
             st.altair_chart(hist, width="stretch")
             html(f'<div class="m20-muted">Longest run in the last 8 weeks reads as {file_stats["longest_run_km"]:.1f} km. '
                  'If that looks wrong, change the distance unit above.</div>')
@@ -462,6 +494,7 @@ with tab_plan:
             table["actual_km"] = pd.Series([None] * len(table), dtype="float64")
             edited = st.data_editor(
                 table, hide_index=True, width="stretch", key="plan_editor",
+                column_order=["week", "week_start", "planned_km", "actual_km", "phase", "long_run_km"],
                 disabled=["week", "week_start", "phase", "planned_km", "long_run_km"],
                 column_config={
                     "week": st.column_config.NumberColumn("Week", width="small"),
@@ -481,7 +514,7 @@ with tab_plan:
         if actual:
             with st.container(border=True, key="card_adjusted"):
                 html('<div class="m20-eyebrow">Rebuilt from your log</div><div class="m20-h2">Adjusted plan</div>')
-                shown = adj[["week", "week_start", "phase", "planned_km", "long_run_km", "actual_km"]].copy()
+                shown = adj[["week", "week_start", "planned_km", "actual_km", "phase", "long_run_km"]].copy()
                 shown["week_start"] = shown["week_start"].map(short_date)
                 st.dataframe(
                     shown.rename(columns={"week": "Week", "week_start": "Week of", "phase": "Phase",
@@ -500,7 +533,7 @@ with tab_plan:
             fill = min(ready_now["peak_long_run_km"] / scale_max * 100, 100)
             b_at, r_at = BORDERLINE_LONG_KM / scale_max * 100, READY_LONG_KM / scale_max * 100
             with st.container(border=True, key="card_ready"):
-                left, right = st.columns([1, 1.25], gap="large")
+                left, right = st.columns([1.15, 1], gap="large")
                 with left:
                     html('<div class="m20-eyebrow">Readiness for race day</div>'
                          f'<div class="m20-status">{label}</div>'
@@ -536,9 +569,13 @@ with tab_how:
              '(or the run you type in) and scales it up to 42.2 km with Riegel\'s formula, the same formula runners '
              'have used for decades. If your file has no run that long, it falls back to runs of 5 km or more and '
              'says so.</div>'
-             f'<div class="m20-body" style="margin-top:0.6rem">The range around it is plus or minus '
-             f'{rel_half * 100:.1f} percent. That width comes from an 80 percent range measured on Boston Marathon '
-             'results, where it held the real finish 80 percent of the time.</div>')
+             '<div class="m20-body" style="margin-top:0.6rem"><b>The machine learning model is not what makes this '
+             'estimate.</b> The model from Weeks 1 and 2 predicts a finish from a halfway time inside a race. A runner '
+             'planning a race does not have one yet, so this app uses Riegel scaling instead.</div>'
+             f'<div class="m20-body" style="margin-top:0.6rem">The range around the estimate is plus or minus '
+             f'{rel_half * 100:.1f} percent. That width comes from the model\'s 80 percent range on Boston Marathon '
+             'results, where it held the real finish 80 percent of the time. It was measured with a halfway time as '
+             'the input, so with a single training run the real range is probably wider.</div>')
 
     with st.container(border=True, key="card_how_rules"):
         html('<div class="m20-eyebrow">The plan</div><div class="m20-h2">Three rules the planner follows</div>'
@@ -568,3 +605,7 @@ with tab_how:
              '<div class="m20-rule"><div class="n">3</div><div class="m20-body"><b>Nothing is trained on Strava data</b>'
              'Your Strava file is demo input only. It stays in this session and is never used to train a model.'
              '</div></div>')
+
+# ---------- Footer ----------
+html(f'<div class="m20-footer"><span>Built by Steven Ning</span>'
+     f'<a href="{REPO_URL}" target="_blank" rel="noopener">Source on GitHub</a></div>')
