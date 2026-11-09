@@ -27,3 +27,19 @@ def test_a_bad_time_shows_a_message_not_a_crash():
     at = open_app()
     at.text_input[0].set_value("not a time").run()
     assert not at.exception
+
+def test_a_lone_number_is_read_as_minutes():
+    at = open_app()
+    at.number_input[0].set_value(5.1)
+    at.text_input[0].set_value("25").run()
+    assert not at.exception
+    assert not at.error
+    assert "Best case" in " ".join(m.value for m in at.markdown)
+
+def test_an_unrealistic_pace_shows_a_message_not_an_estimate():
+    at = open_app()
+    at.number_input[0].set_value(6.0)
+    at.text_input[0].set_value("1:55:00").run()
+    assert not at.exception
+    assert len(at.error) == 1
+    assert "not realistic" in at.error[0].value
