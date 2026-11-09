@@ -4,7 +4,7 @@ primaryColor = "#E4572E"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F2F5FA"
 textColor = "#1B2A41"
-font = "sans serif"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
 borderColor = "#E1E7F0"
 baseRadius = "10px"
 
