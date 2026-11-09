@@ -5,3 +5,12 @@ backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F2F5FA"
 textColor = "#1B2A41"
 font = "sans serif"
+borderColor = "#E1E7F0"
+baseRadius = "10px"
+
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false
+
+[browser]
+gatherUsageStats = false
