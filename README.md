@@ -6,7 +6,7 @@ Live app: [mile20.streamlit.app](https://mile20.streamlit.app)
 
 ![Mile20 estimate screen](docs/screenshots/desktop_estimate.png)
 
-A personal project for the Alpha Kappa Psi pledgeship. The goal is to predict a runner's marathon finish time from real race data, beat a classic baseline formula with a machine learning model, and build a training plan that adjusts to how each week actually goes.
+A personal project. The goal is to predict a runner's marathon finish time from real race data, beat a classic baseline formula with a machine learning model, and build a training plan that adjusts to how each week actually goes.
 
 ## Week 4: the finished app
 

@@ -35,7 +35,7 @@ TAGLINE = "Predict your marathon finish, then train so mile 20 feels like mile 1
 BOSTON_FILE = Path(__file__).parent / "data" / "raw" / "Athletes.csv"
 ICON_FILE = Path(__file__).parent / "assets" / "mile20_icon.png"
 REPO_URL = "https://github.com/stevenning123/marathon_planner"
-SUBLINE = "A personal project for Alpha Kappa Psi. Estimates are best case and plans follow rules of thumb."
+SUBLINE = "A personal project. Estimates are best case and plans follow rules of thumb."
 FONT = "Inter"
 CARD_RADIUS, INNER_RADIUS = "14px", "10px"
 
