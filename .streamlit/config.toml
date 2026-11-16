@@ -1,13 +1,13 @@
 [theme]
-# These five colors repeat PALETTE in app.py: primaryColor = accent, backgroundColor = bg,
-# secondaryBackgroundColor = card, textColor = ink, borderColor = card_border. Change both together.
+# These five colors repeat PALETTE in app.py: primaryColor = accent, backgroundColor = page,
+# secondaryBackgroundColor = inset, textColor = ink, borderColor = card_border. Change both together.
 base = "light"
 primaryColor = "#C2410C"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F6F8FD"
+backgroundColor = "#EEF2F9"
+secondaryBackgroundColor = "#F5F7FC"
 textColor = "#13233F"
 font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-borderColor = "#DDE4F0"
+borderColor = "#DCE3EF"
 baseRadius = "10px"
 
 [client]
