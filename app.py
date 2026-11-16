@@ -39,12 +39,42 @@ SUBLINE = "A personal project. Estimates are best case and plans follow rules of
 FONT = "Inter"
 CARD_RADIUS, INNER_RADIUS = "14px", "10px"
 
-# Palette. Navy for text, one blue for data, one orange accent, light blue grey for cards.
-NAVY, BLUE, ORANGE, CARD = "#1B2A41", "#2F5DA8", "#E4572E", "#F2F5FA"
-# Phase colors, used only on the plan chart and its legend.
+# Palette: every color in the app comes from here. The theme in .streamlit/config.toml repeats five of these
+# (primaryColor = accent, backgroundColor = bg, secondaryBackgroundColor = card, textColor = ink,
+# borderColor = card_border), so keep those in step when you change this dictionary.
+PALETTE = {
+    # Text
+    "ink": "#13233F",          # deep navy for all text and the actual km line
+    "ink_muted": "#4B5873",    # secondary text, 6.7:1 on cards
+    # Data and action
+    "data": "#2F5BD3",         # cobalt for data marks (range band, numbered steps, links)
+    "data_soft": "#A9C0EE",    # light cobalt for quiet edges
+    "accent": "#C2410C",       # ember orange, the one action color (buttons, sliders, selected tab)
+    "accent_hover": "#9A3412",
+    "on_accent": "#FFFFFF",    # text on the accent, 5.2:1
+    # Surfaces
+    "bg": "#FFFFFF",
+    "card": "#F6F8FD",
+    "card_border": "#DDE4F0",
+    "inner_border": "#E3E9F3",
+    "divider": "#E3E9F3",
+    "track": "#E4EAF4",
+    "shadow": "0 1px 2px rgba(19, 35, 63, 0.04), 0 6px 18px rgba(19, 35, 63, 0.05)",
+    "hero": "linear-gradient(135deg, #EDF2FC 0%, #F7F9FE 55%, #FDF5EF 100%)",
+    "hero_border": "#E2E8F4",
+    # Chart furniture
+    "grid": "#DFE5EE",
+    "axis": "#B6C2D6",
+    "original_line": "#7A869C",
+    # One color per plan phase, used by the chart and its legend. Checked for color blind separation in chart order.
+    "phase": {"Build": "#2F5BD3", "Cutback": "#4D92DF", "Taper": "#1F9A8A", "Race week": "#8A4FD6"},
+    # One color per readiness rating. Always shown with its label, never color alone.
+    "status": {"ready": "#178A52", "borderline": "#D0900F", "under prepared": "#B8282E"},
+}
+P = PALETTE
 PHASES = ["Build", "Cutback", "Taper", "Race week"]
 ORDINAL = {2: "second", 3: "third", 4: "fourth", 5: "fifth"}
-PHASE_COLORS = {"Build": BLUE, "Cutback": "#9DB4DD", "Taper": "#7C8AA0", "Race week": NAVY}
+PHASE_COLORS = P["phase"]
 
 st.set_page_config(page_title=f"{APP_NAME} | Marathon finish predictor", page_icon=str(ICON_FILE) if ICON_FILE.exists() else "🏃", layout="wide")
 
@@ -55,104 +85,122 @@ CSS = f"""
 }}
 header[data-testid="stHeader"] {{ background: transparent; height: 0; }}
 .block-container {{ max-width: 1080px; padding-top: 2.2rem; padding-bottom: 4rem; }}
-html, body, [class*="css"] {{ color: {NAVY}; }}
+html, body, [class*="css"] {{ color: {P["ink"]}; }}
 /* Tabular numbers everywhere so times and distances line up */
 body, .stApp, .stApp * {{ font-variant-numeric: tabular-nums; }}
 
 /* Header */
 .m20-header {{ margin: 0 0 1.4rem 0; padding: 1.7rem 1.9rem 1.5rem 1.9rem; border-radius: {CARD_RADIUS};
-  background: linear-gradient(120deg, #DCE6F6 0%, #EAF0FA 45%, #F7F9FD 100%); border: 1px solid #E1E7F0; }}
-.m20-sub {{ font-size: 0.82rem; color: {NAVY}; opacity: 0.6; margin-top: 0.7rem; padding-top: 0.6rem;
-  border-top: 1px solid rgba(27, 42, 65, 0.1); }}
-.m20-logo {{ font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: {NAVY}; }}
-.m20-logo span {{ color: {ORANGE}; }}
-.m20-tagline {{ font-size: 1.05rem; color: {NAVY}; opacity: 0.72; margin-top: 0.45rem; }}
+  background: {P["hero"]}; border: 1px solid {P["hero_border"]}; box-shadow: {P["shadow"]}; }}
+.m20-sub {{ font-size: 0.82rem; color: {P["ink_muted"]}; margin-top: 0.7rem; padding-top: 0.6rem;
+  border-top: 1px solid {P["divider"]}; }}
+.m20-logo {{ font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: {P["ink"]}; }}
+.m20-logo span {{ color: {P["accent"]}; }}
+.m20-tagline {{ font-size: 1.05rem; color: {P["ink_muted"]}; margin-top: 0.45rem; }}
 
 /* Tabs */
-.stTabs [role="tablist"] {{ gap: 1.6rem; border-bottom: 1px solid #DDE3EE; }}
+.stTabs [role="tablist"] {{ gap: 1.6rem; border-bottom: 1px solid {P["divider"]}; }}
 .stTabs [role="tab"] {{ padding: 0.6rem 0.1rem; transition: color 0.15s ease; }}
-.stTabs [role="tab"]:hover, .stTabs [role="tab"]:hover p {{ color: {BLUE} !important; }}
+.stTabs [role="tab"] p {{ color: {P["ink_muted"]}; }}
+.stTabs [role="tab"]:hover, .stTabs [role="tab"]:hover p {{ color: {P["data"]} !important; }}
+.stTabs [role="tab"][aria-selected="true"] p,
 .stTabs [role="tab"][aria-selected="true"]:hover,
-.stTabs [role="tab"][aria-selected="true"]:hover p {{ color: {ORANGE} !important; }}
+.stTabs [role="tab"][aria-selected="true"]:hover p {{ color: {P["accent"]} !important; }}
 .stTabs [role="tab"] p {{ font-size: 1rem; font-weight: 600; }}
 .stTabs [role="tabpanel"] {{ padding-top: 1.4rem; }}
 
-/* Cards: bordered containers get the light card color */
+/* Cards: bordered containers get the card color, a matching border and a soft shadow */
 [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]),
 div[class*="st-key-card"] {{
-  background: {CARD};
-  border-color: #E1E7F0 !important;
+  background: {P["card"]};
+  border-color: {P["card_border"]} !important;
   border-radius: {CARD_RADIUS} !important;
+  box-shadow: {P["shadow"]};
 }}
-[data-testid="stExpander"] details {{ border-radius: {CARD_RADIUS} !important; border-color: #E1E7F0 !important; }}
+[data-testid="stExpander"] details {{ border-radius: {CARD_RADIUS} !important; border-color: {P["card_border"]} !important;
+  background: {P["bg"]}; }}
 /* Consistent space between stacked cards */
 [data-testid="stVerticalBlock"] {{ row-gap: 1rem; }}
 div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important; }}
 
+/* Primary buttons, including the Strava file picker, use the one action color */
+[data-testid="stBaseButton-primary"],
+[data-testid="stFileUploaderDropzone"] button {{
+  background: {P["accent"]} !important; border-color: {P["accent"]} !important; color: {P["on_accent"]} !important; }}
+[data-testid="stBaseButton-primary"]:hover,
+[data-testid="stFileUploaderDropzone"] button:hover {{
+  background: {P["accent_hover"]} !important; border-color: {P["accent_hover"]} !important; }}
+
 /* Type scale */
 .m20-eyebrow {{ font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  color: {NAVY}; opacity: 0.6; margin-bottom: 0.35rem; }}
-.m20-h2 {{ font-size: 1.25rem; font-weight: 700; color: {NAVY}; margin: 0 0 0.4rem 0; }}
-.m20-body {{ font-size: 0.98rem; line-height: 1.6; color: {NAVY}; }}
-.m20-muted {{ font-size: 0.9rem; line-height: 1.5; color: {NAVY}; opacity: 0.68; }}
+  color: {P["ink_muted"]}; margin-bottom: 0.35rem; }}
+.m20-h2 {{ font-size: 1.25rem; font-weight: 700; color: {P["ink"]}; margin: 0 0 0.4rem 0; }}
+.m20-body {{ font-size: 0.98rem; line-height: 1.6; color: {P["ink"]}; }}
+.m20-muted {{ font-size: 0.9rem; line-height: 1.5; color: {P["ink_muted"]}; }}
 
 /* Big estimate */
 .m20-big {{ font-size: clamp(3.6rem, 16vw, 7.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.95;
-  color: {NAVY}; font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0.3rem 0 0.6rem 0; }}
-.m20-pill {{ display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px;
-  background: #FFFFFF; border: 1px solid #D5DDEA; color: {NAVY}; vertical-align: middle; }}
-.m20-pill.accent {{ background: {ORANGE}; border-color: {ORANGE}; color: #FFFFFF; }}
-.m20-pill.blue {{ background: {BLUE}; border-color: {BLUE}; color: #FFFFFF; }}
+  color: {P["ink"]}; font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0.3rem 0 0.6rem 0; }}
+.m20-pill {{ display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 700;
+  padding: 0.2rem 0.65rem; border-radius: 999px; background: {P["bg"]}; border: 1px solid {P["card_border"]};
+  color: {P["ink"]}; vertical-align: middle; }}
+.m20-pill.accent {{ background: {P["accent"]}; border-color: {P["accent"]}; color: {P["on_accent"]}; }}
+.m20-pill.status {{ border-color: var(--status); }}
+.m20-dot {{ display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--status); }}
 
 /* Range band */
 .m20-band {{ margin: 1.4rem 0 0.4rem 0; }}
-.m20-track {{ position: relative; height: 14px; border-radius: 999px; background: #DDE4EF; }}
-.m20-fill {{ position: absolute; top: 0; bottom: 0; border-radius: 999px; background: {BLUE}; opacity: 0.85; }}
+.m20-track {{ position: relative; height: 14px; border-radius: 999px; background: {P["track"]}; }}
+.m20-fill {{ position: absolute; top: 0; bottom: 0; border-radius: 999px; background: {P["data"]}; }}
 .m20-marker {{ position: absolute; top: -6px; width: 4px; height: 26px; margin-left: -2px; border-radius: 2px;
-  background: {ORANGE}; box-shadow: 0 0 0 3px {CARD}; }}
+  background: {P["accent"]}; box-shadow: 0 0 0 3px {P["card"]}; }}
 .m20-ticks {{ position: relative; height: 3rem; margin-top: 0.45rem; }}
 .m20-tick {{ position: absolute; transform: translateX(-50%); text-align: center; white-space: nowrap; }}
-.m20-tick b {{ display: block; font-size: 0.98rem; font-variant-numeric: tabular-nums; color: {NAVY}; }}
-.m20-tick small {{ font-size: 0.74rem; color: {NAVY}; opacity: 0.6; }}
+.m20-tick b {{ display: block; font-size: 0.98rem; font-variant-numeric: tabular-nums; color: {P["ink"]}; }}
+.m20-tick small {{ font-size: 0.74rem; color: {P["ink_muted"]}; }}
 
 /* Calm notes */
-.m20-note {{ display: flex; gap: 0.7rem; background: #FFFFFF; border: 1px solid #E1E7F0; border-left: 3px solid #9DB4DD;
-  border-radius: {INNER_RADIUS}; padding: 0.75rem 0.95rem; margin: 0.6rem 0; font-size: 0.92rem; line-height: 1.5; color: {NAVY}; }}
-.m20-note .i {{ flex: 0 0 auto; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: {CARD};
-  border: 1px solid #C9D4E5; font-size: 0.75rem; font-weight: 700; text-align: center; line-height: 1.15rem; }}
+.m20-note {{ display: flex; gap: 0.7rem; background: {P["bg"]}; border: 1px solid {P["card_border"]};
+  border-left: 3px solid {P["data_soft"]}; border-radius: {INNER_RADIUS}; padding: 0.75rem 0.95rem; margin: 0.6rem 0;
+  font-size: 0.92rem; line-height: 1.5; color: {P["ink"]}; }}
+.m20-note .i {{ flex: 0 0 auto; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: {P["card"]};
+  border: 1px solid {P["data_soft"]}; color: {P["data"]}; font-size: 0.75rem; font-weight: 700; text-align: center;
+  line-height: 1.15rem; }}
 
 /* Stat row */
 .m20-stats {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1rem; }}
-.m20-stat {{ background: #FFFFFF; border: 1px solid #E1E7F0; border-radius: {INNER_RADIUS}; padding: 0.7rem 0.85rem; }}
-.m20-stat .v {{ font-size: 1.3rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; color: {NAVY}; }}
-.m20-stat .l {{ font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {NAVY}; opacity: 0.62; }}
+.m20-stat {{ background: {P["bg"]}; border: 1px solid {P["inner_border"]}; border-radius: {INNER_RADIUS}; padding: 0.7rem 0.85rem; }}
+.m20-stat .v {{ font-size: 1.3rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; color: {P["ink"]}; }}
+.m20-stat .l {{ font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {P["ink_muted"]}; }}
 
-/* Readiness meter */
-.m20-status {{ font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; color: {NAVY}; margin: 0.1rem 0 0.2rem 0; }}
-.m20-meter {{ position: relative; height: 10px; border-radius: 999px; background: #DDE4EF; margin: 1rem 0 0.3rem 0; }}
-.m20-meter .f {{ position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: {BLUE}; }}
-.m20-meter .t {{ position: absolute; top: -5px; width: 2px; height: 20px; background: {NAVY}; opacity: 0.55; }}
-.m20-meter-labels {{ position: relative; height: 1.2rem; font-size: 0.74rem; color: {NAVY}; opacity: 0.65; }}
+/* Readiness meter: the fill wears the rating's color, the label stays in ink */
+.m20-status {{ display: flex; align-items: center; gap: 0.55rem; font-size: 2rem; font-weight: 800;
+  letter-spacing: -0.02em; color: {P["ink"]}; margin: 0.1rem 0 0.35rem 0; }}
+.m20-status .m20-dot {{ width: 0.85rem; height: 0.85rem; }}
+.m20-meter {{ position: relative; height: 10px; border-radius: 999px; background: {P["track"]}; margin: 1rem 0 0.3rem 0; }}
+.m20-meter .f {{ position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--status); }}
+.m20-meter .t {{ position: absolute; top: -5px; width: 2px; height: 20px; background: {P["ink_muted"]}; }}
+.m20-meter-labels {{ position: relative; height: 1.2rem; font-size: 0.74rem; color: {P["ink_muted"]}; }}
 .m20-meter-labels span {{ position: absolute; transform: translateX(-50%); white-space: nowrap; }}
 
 /* Legend */
-.m20-legend {{ display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.85rem; color: {NAVY}; margin: 0.2rem 0 0.4rem 0; }}
+.m20-legend {{ display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.85rem; color: {P["ink"]}; margin: 0.2rem 0 0.4rem 0; }}
 .m20-legend span {{ display: inline-flex; align-items: center; gap: 0.4rem; }}
 .m20-legend i {{ display: inline-block; width: 12px; height: 12px; border-radius: 3px; }}
 .m20-legend i.line {{ height: 3px; width: 18px; border-radius: 2px; }}
-.m20-legend i.dash {{ height: 0; width: 18px; border-top: 2px dashed {NAVY}; opacity: 0.55; border-radius: 0; }}
+.m20-legend i.dash {{ height: 0; width: 18px; border-top: 2px dashed {P["original_line"]}; border-radius: 0; }}
 
 /* How it works */
 .m20-rule {{ display: flex; gap: 0.9rem; align-items: flex-start; margin: 0.9rem 0; }}
-.m20-rule .n {{ flex: 0 0 auto; width: 2rem; height: 2rem; border-radius: 50%; background: {BLUE}; color: #FFFFFF;
+.m20-rule .n {{ flex: 0 0 auto; width: 2rem; height: 2rem; border-radius: 50%; background: {P["data"]}; color: {P["on_accent"]};
   font-weight: 700; text-align: center; line-height: 2rem; }}
-.m20-rule b {{ display: block; font-size: 1rem; color: {NAVY}; }}
+.m20-rule b {{ display: block; font-size: 1rem; color: {P["ink"]}; }}
 
 /* Footer */
-.m20-footer {{ margin-top: 2.5rem; padding-top: 1.1rem; border-top: 1px solid #E1E7F0; display: flex;
-  flex-wrap: wrap; justify-content: space-between; gap: 0.4rem 1rem; font-size: 0.85rem; color: {NAVY}; opacity: 0.75; }}
-.m20-footer a {{ color: {BLUE}; text-decoration: none; font-weight: 600; }}
-.m20-footer a:hover {{ color: {ORANGE}; }}
+.m20-footer {{ margin-top: 2.5rem; padding-top: 1.1rem; border-top: 1px solid {P["divider"]}; display: flex;
+  flex-wrap: wrap; justify-content: space-between; gap: 0.4rem 1rem; font-size: 0.85rem; color: {P["ink_muted"]}; }}
+.m20-footer a {{ color: {P["data"]}; text-decoration: none; font-weight: 600; }}
+.m20-footer a:hover {{ color: {P["accent"]}; }}
 
 @media (max-width: 640px) {{
   .block-container {{ padding-left: 1rem; padding-right: 1rem; padding-top: 1.4rem; }}
@@ -264,7 +312,7 @@ def stat_row(items: list[tuple[str, str]]) -> str:
 def legend(with_actual: bool, with_original: bool) -> str:
     parts = [f'<span><i style="background:{PHASE_COLORS[p]}"></i>{p}</span>' for p in PHASES]
     if with_actual:
-        parts.append(f'<span><i class="line" style="background:{ORANGE}"></i>Your actual km</span>')
+        parts.append(f'<span><i class="line" style="background:{P["ink"]}"></i>Your actual km</span>')
     if with_original:
         parts.append('<span><i class="dash"></i>Original plan</span>')
     return f'<div class="m20-legend">{"".join(parts)}</div>'
@@ -277,13 +325,14 @@ def plan_chart(adjusted: pd.DataFrame, original: pd.DataFrame, show_original: bo
     race_week = int(race.iloc[0]) if len(race) else -1
     is_race = f"datum.value == {race_week}"
     axis_x = alt.X("week:O", title="Week", axis=alt.Axis(
-        labelAngle=0, labelColor=NAVY, titleColor=NAVY, domainColor="#C9D4E5", tickColor="#C9D4E5", labelFontSize=11,
+        labelAngle=0, labelColor=P["ink_muted"], titleColor=P["ink_muted"], domainColor=P["axis"], tickColor=P["axis"],
+        labelFontSize=11,
         labelExpr=f"{is_race} ? 'Race' : datum.label",
         labelFontWeight=alt.ExprRef(f"{is_race} ? 'bold' : 'normal'")))
     bars = alt.Chart(data).mark_bar(cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
         x=axis_x,
         y=alt.Y("planned_km:Q", title="Kilometers",
-                axis=alt.Axis(labelColor=NAVY, titleColor=NAVY, gridColor="#D9E1EC", gridDash=[3, 3],
+                axis=alt.Axis(labelColor=P["ink_muted"], titleColor=P["ink_muted"], gridColor=P["grid"], gridDash=[3, 3],
                               gridOpacity=0.9, domain=False, ticks=False, tickCount=5)),
         color=alt.Color("phase:N", scale=alt.Scale(domain=PHASES, range=[PHASE_COLORS[p] for p in PHASES]), legend=None),
         tooltip=[alt.Tooltip("week:O", title="Week"), alt.Tooltip("Week of:N"), alt.Tooltip("phase:N", title="Phase"),
@@ -293,7 +342,7 @@ def plan_chart(adjusted: pd.DataFrame, original: pd.DataFrame, show_original: bo
     layers = [bars]
     if show_original:
         orig = original[["week", "planned_km"]].rename(columns={"planned_km": "original_km"})
-        layers.append(alt.Chart(orig).mark_line(color=NAVY, opacity=0.5, strokeDash=[5, 4], strokeWidth=1.6).encode(
+        layers.append(alt.Chart(orig).mark_line(color=P["original_line"], strokeDash=[5, 4], strokeWidth=1.6).encode(
             x=axis_x, y="original_km:Q",
             tooltip=[alt.Tooltip("week:O", title="Week"), alt.Tooltip("original_km:Q", title="Original plan km", format=".1f")]))
     if "actual_km" in data and data["actual_km"].notna().any():
@@ -301,8 +350,9 @@ def plan_chart(adjusted: pd.DataFrame, original: pd.DataFrame, show_original: bo
         actual = alt.Chart(logged).encode(
             x=axis_x, y="actual_km:Q",
             tooltip=[alt.Tooltip("week:O", title="Week"), alt.Tooltip("actual_km:Q", title="Actual km", format=".1f")])
-        layers += [actual.mark_line(color=ORANGE, strokeWidth=2.5),
-                   actual.mark_point(color=ORANGE, filled=True, size=70, opacity=1)]
+        # Ink line with white ringed points: separates from every phase color by lightness, not hue
+        layers += [actual.mark_line(color=P["ink"], strokeWidth=2.5),
+                   actual.mark_point(color=P["ink"], filled=True, size=80, opacity=1, stroke=P["bg"], strokeWidth=2)]
     return (alt.layer(*layers).properties(height=300)
             .configure_view(strokeWidth=0).configure(background="transparent", font=FONT))
 
@@ -450,11 +500,12 @@ with tab_est:
             html('<div class="m20-eyebrow">From your file</div><div class="m20-h2">Your last 12 weeks</div>')
             weekly = weekly_summary(runs, as_of=TODAY, weeks=12)
             weekly["Week of"] = weekly["week_start"].map(short_date)
-            hist = alt.Chart(weekly).mark_bar(color=BLUE, cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
-                x=alt.X("Week of:N", sort=None, title=None, axis=alt.Axis(labelAngle=0, labelColor=NAVY,
-                                                                          labelOverlap=True, domainColor="#C9D4E5")),
-                y=alt.Y("km:Q", title="Kilometers", axis=alt.Axis(labelColor=NAVY, titleColor=NAVY,
-                                                                   gridColor="#E6EBF3", domain=False, tickCount=5)),
+            hist = alt.Chart(weekly).mark_bar(color=P["data"], cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
+                x=alt.X("Week of:N", sort=None, title=None, axis=alt.Axis(labelAngle=0, labelColor=P["ink_muted"],
+                                                                          labelOverlap=True, domainColor=P["axis"])),
+                y=alt.Y("km:Q", title="Kilometers", axis=alt.Axis(labelColor=P["ink_muted"], titleColor=P["ink_muted"],
+                                                                   gridColor=P["grid"], gridDash=[3, 3], domain=False,
+                                                                   tickCount=5)),
                 tooltip=["Week of", alt.Tooltip("km:Q", format=".1f")],
             ).properties(height=220).configure_view(strokeWidth=0).configure(background="transparent", font=FONT)
             st.altair_chart(hist, width="stretch")
@@ -534,7 +585,7 @@ with tab_plan:
 
         with top:
             label = {"ready": "Ready", "borderline": "Borderline", "under prepared": "Under prepared"}[ready_now["status"]]
-            pill = {"ready": "blue", "borderline": "", "under prepared": "accent"}[ready_now["status"]]
+            status_color = P["status"][ready_now["status"]]
             why, change = readiness_copy(ready_now, len(adj), missed)
             scale_max = max(LONG_RUN_CAP_KM, ready_now["peak_long_run_km"])
             fill = min(ready_now["peak_long_run_km"] / scale_max * 100, 100)
@@ -542,13 +593,15 @@ with tab_plan:
             with st.container(border=True, key="card_ready"):
                 left, right = st.columns([1.15, 1], gap="large")
                 with left:
-                    html('<div class="m20-eyebrow">Readiness for race day</div>'
-                         f'<div class="m20-status">{label}</div>'
-                         f'<span class="m20-pill {pill}">Longest run {ready_now["peak_long_run_km"]:g} km</span>'
+                    html(f'<div style="--status:{status_color}">'
+                         '<div class="m20-eyebrow">Readiness for race day</div>'
+                         f'<div class="m20-status"><span class="m20-dot"></span>{label}</div>'
+                         f'<span class="m20-pill status"><span class="m20-dot"></span>'
+                         f'Longest run {ready_now["peak_long_run_km"]:g} km</span>'
                          f'<div class="m20-meter"><div class="f" style="width:{fill:.1f}%"></div>'
                          f'<div class="t" style="left:{b_at:.1f}%"></div><div class="t" style="left:{r_at:.1f}%"></div></div>'
                          f'<div class="m20-meter-labels"><span style="left:{b_at:.1f}%">{BORDERLINE_LONG_KM:g} km</span>'
-                         f'<span style="left:{r_at:.1f}%">{READY_LONG_KM:g} km</span></div>')
+                         f'<span style="left:{r_at:.1f}%">{READY_LONG_KM:g} km</span></div></div>')
                     html(stat_row([
                         (f"{len(adj)}", "weeks"),
                         (f"{ready_now['peak_week_km']:g} km", "peak week"),
