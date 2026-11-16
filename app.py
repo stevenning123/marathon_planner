@@ -40,7 +40,7 @@ FONT = "Inter"
 CARD_RADIUS, INNER_RADIUS = "14px", "10px"
 
 # Palette: every color in the app comes from here. The theme in .streamlit/config.toml repeats five of these
-# (primaryColor = accent, backgroundColor = bg, secondaryBackgroundColor = card, textColor = ink,
+# (primaryColor = accent, backgroundColor = page, secondaryBackgroundColor = inset, textColor = ink,
 # borderColor = card_border), so keep those in step when you change this dictionary.
 PALETTE = {
     # Text
@@ -53,15 +53,16 @@ PALETTE = {
     "accent_hover": "#9A3412",
     "on_accent": "#FFFFFF",    # text on the accent, 5.2:1
     # Surfaces
-    "bg": "#FFFFFF",
-    "card": "#F6F8FD",
-    "card_border": "#DDE4F0",
+    "page": "#EEF2F9",        # light cool tint behind everything, so white cards lift off it
+    "card": "#FFFFFF",        # cards, notes and the expander
+    "inset": "#F5F7FC",       # tiles and input boxes inside a card
+    "card_border": "#DCE3EF",
     "inner_border": "#E3E9F3",
-    "divider": "#E3E9F3",
+    "divider": "#D9E0EC",
     "track": "#E4EAF4",
-    "shadow": "0 1px 2px rgba(19, 35, 63, 0.04), 0 6px 18px rgba(19, 35, 63, 0.05)",
-    "hero": "linear-gradient(135deg, #EDF2FC 0%, #F7F9FE 55%, #FDF5EF 100%)",
-    "hero_border": "#E2E8F4",
+    "shadow": "0 1px 2px rgba(19, 35, 63, 0.05), 0 8px 24px rgba(19, 35, 63, 0.06)",
+    "hero": "linear-gradient(135deg, #FFFFFF 0%, #F8FAFE 55%, #FFF3EA 100%)",
+    "hero_border": "#DCE3EF",
     # Chart furniture
     "grid": "#DFE5EE",
     "axis": "#B6C2D6",
@@ -86,6 +87,7 @@ CSS = f"""
 header[data-testid="stHeader"] {{ background: transparent; height: 0; }}
 .block-container {{ max-width: 1080px; padding-top: 2.2rem; padding-bottom: 4rem; }}
 html, body, [class*="css"] {{ color: {P["ink"]}; }}
+.stApp {{ background: {P["page"]}; }}
 /* Tabular numbers everywhere so times and distances line up */
 body, .stApp, .stApp * {{ font-variant-numeric: tabular-nums; }}
 
@@ -118,7 +120,7 @@ div[class*="st-key-card"] {{
   box-shadow: {P["shadow"]};
 }}
 [data-testid="stExpander"] details {{ border-radius: {CARD_RADIUS} !important; border-color: {P["card_border"]} !important;
-  background: {P["bg"]}; }}
+  background: {P["card"]}; }}
 /* Consistent space between stacked cards */
 [data-testid="stVerticalBlock"] {{ row-gap: 1rem; }}
 div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important; }}
@@ -142,7 +144,7 @@ div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important;
 .m20-big {{ font-size: clamp(3.6rem, 16vw, 7.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.95;
   color: {P["ink"]}; font-variant-numeric: tabular-nums; white-space: nowrap; margin: 0.3rem 0 0.6rem 0; }}
 .m20-pill {{ display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 700;
-  padding: 0.2rem 0.65rem; border-radius: 999px; background: {P["bg"]}; border: 1px solid {P["card_border"]};
+  padding: 0.2rem 0.65rem; border-radius: 999px; background: {P["card"]}; border: 1px solid {P["card_border"]};
   color: {P["ink"]}; vertical-align: middle; }}
 .m20-pill.accent {{ background: {P["accent"]}; border-color: {P["accent"]}; color: {P["on_accent"]}; }}
 .m20-pill.status {{ border-color: var(--status); }}
@@ -160,16 +162,16 @@ div[class*="st-key-card"] {{ padding: 1.25rem 1.35rem 1.7rem 1.35rem !important;
 .m20-tick small {{ font-size: 0.74rem; color: {P["ink_muted"]}; }}
 
 /* Calm notes */
-.m20-note {{ display: flex; gap: 0.7rem; background: {P["bg"]}; border: 1px solid {P["card_border"]};
+.m20-note {{ display: flex; gap: 0.7rem; background: {P["card"]}; border: 1px solid {P["card_border"]};
   border-left: 3px solid {P["data_soft"]}; border-radius: {INNER_RADIUS}; padding: 0.75rem 0.95rem; margin: 0.6rem 0;
   font-size: 0.92rem; line-height: 1.5; color: {P["ink"]}; }}
-.m20-note .i {{ flex: 0 0 auto; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: {P["card"]};
+.m20-note .i {{ flex: 0 0 auto; width: 1.25rem; height: 1.25rem; border-radius: 50%; background: {P["inset"]};
   border: 1px solid {P["data_soft"]}; color: {P["data"]}; font-size: 0.75rem; font-weight: 700; text-align: center;
   line-height: 1.15rem; }}
 
 /* Stat row */
 .m20-stats {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1rem; }}
-.m20-stat {{ background: {P["bg"]}; border: 1px solid {P["inner_border"]}; border-radius: {INNER_RADIUS}; padding: 0.7rem 0.85rem; }}
+.m20-stat {{ background: {P["inset"]}; border: 1px solid {P["inner_border"]}; border-radius: {INNER_RADIUS}; padding: 0.7rem 0.85rem; }}
 .m20-stat .v {{ font-size: 1.3rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; color: {P["ink"]}; }}
 .m20-stat .l {{ font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {P["ink_muted"]}; }}
 
@@ -352,7 +354,7 @@ def plan_chart(adjusted: pd.DataFrame, original: pd.DataFrame, show_original: bo
             tooltip=[alt.Tooltip("week:O", title="Week"), alt.Tooltip("actual_km:Q", title="Actual km", format=".1f")])
         # Ink line with white ringed points: separates from every phase color by lightness, not hue
         layers += [actual.mark_line(color=P["ink"], strokeWidth=2.5),
-                   actual.mark_point(color=P["ink"], filled=True, size=80, opacity=1, stroke=P["bg"], strokeWidth=2)]
+                   actual.mark_point(color=P["ink"], filled=True, size=80, opacity=1, stroke=P["card"], strokeWidth=2)]
     return (alt.layer(*layers).properties(height=300)
             .configure_view(strokeWidth=0).configure(background="transparent", font=FONT))
 
